@@ -22,7 +22,7 @@ type Day struct {
 
 func printTable(arrMonth [12]Month) {
 	for _, p := range arrMonth {
-		fmt.Printf("%d. %s  with lenght(%d)\n", p.id, p.name, p.lenght)
+		fmt.Printf("%d. %s x with lenght(%d)\n", p.id, p.name, p.lenght)
 	}
 }
 
