@@ -1,25 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Month struct {
-	id     int
-	name   string
-	lenght int
+	id           int
+	name         string
+	lenght       int
 	lenghtOfYear int
 }
 
 type Day struct {
 	id            int
 	name          string
-	numberOfTusks int
-	idDay         int
+	numberOfTasks int
 }
-
-// func calculateDay() string {
-// 	for i := 0; i <= 365; i++ {
-// 	}
-// }
 
 func printMonth(arrMonth [12]Month) {
 	for _, p := range arrMonth {
@@ -27,48 +23,46 @@ func printMonth(arrMonth [12]Month) {
 	}
 }
 
-func controls(arrMonth [12]Month) {
+func controls(arrMonth [12]Month, arrDays [][]Day) {
 	fmt.Println("Chose month")
-	var i int
-	switch i {
-	case 1:
-
-	}
-}
-
-func printDays(arrMonth [12]Month, arrDay []string) {
-	for i := 1; i <= 12; i++ {
-		if i == arrMonth[i].id {
-			for j := 1; j <= arrMonth[i].lenght; j++ {
-				fmt.Printf("%d. %s curr tasks(%d)\n", j, arrDay[0], p.lenght)
-			}
-		}
+	var n int
+	fmt.Scan(&n)
+	for i := 1; i <= arrMonth[n-1].lenght; i++ {
+		fmt.Printf("%d. %s, Task(%d)\n", arrDays[n][i].id, arrDays[n][i].name, arrDays[n][i].numberOfTasks)
 	}
 }
 
 func main() {
-	arrDayOnWeek := make([]string, 7, 7)
-	arrDayOnWeek = append(arrDayOnWeek, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+	arrDayOnWeek := [...]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 
 	arrMonth := [12]Month{
 		{1, "January", 31, 31},
-		{2, "February", 28, 59},
-		{3, "March", 31, 90},
-		{4, "April", 30, 120},
-		{5, "May", 31, 151},
-		{6, "June", 30, 181},
-		{7, "July", 31, 212},
-		{8, "August", 31, 243},
-		{9, "September", 30, 273},
-		{10, "October", 31, 304},
-		{11, "November", 30, 334},
-		{12, "December", 31, 365},
+		{2, "February", 29, 59},
+		{3, "March", 31, 91},
+		{4, "April", 30, 121},
+		{5, "May", 31, 152},
+		{6, "June", 30, 183},
+		{7, "July", 31, 213},
+		{8, "August", 31, 244},
+		{9, "September", 30, 274},
+		{10, "October", 31, 305},
+		{11, "November", 30, 335},
+		{12, "December", 31, 366},
 	}
 
-	arrDay := make([]Day, 365, 365)
-	countMonth := 1
-	for i := 1; i <= 365; i++{
-		arrDay = append(arrDay, {i})
+	arrDays := make([][]Day, 12)
+	dayOfWeekIndex := 0
+	for i := 0; i < len(arrMonth); i++ {
+		arrDays[i] = make([]Day, arrMonth[i].lenght)
+		for j := 0; j < arrMonth[i].lenght; j++ {
+			arrDays[i][j] = Day{
+				id:            j,
+				name:          arrDayOnWeek[dayOfWeekIndex%7],
+				numberOfTasks: 0,
+			}
+			dayOfWeekIndex++
+		}
 	}
 	printMonth(arrMonth)
+	controls(arrMonth, arrDays)
 }
