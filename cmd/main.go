@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -94,51 +95,68 @@ func printDays(month Month) {
 	}
 }
 
+func printTask(tasks []string) {
+	for i, task := range tasks {
+		fmt.Printf("%d. %s\n", i+1, task)
+	}
+}
+
 func controls(arrMonth [12]Month) {
 	reader := bufio.NewReader(os.Stdin)
-	var n, k int
+	var numberMonth, numberDay int
 	for {
 		clearConsole()
 		printMonth(arrMonth)
 		fmt.Println("Choose month, enter '0' to end program")
-		fmt.Scan(&n)
-		if n == 0 {
+		fmt.Scan(&numberMonth)
+		if numberMonth == 0 {
 			saveToFile(arrMonth, "data.json")
 			os.Exit(0)
 		}
-		if n < 1 || n > 12 {
+		if numberMonth < 1 || numberMonth > 12 {
 			fmt.Println("Invalid month. Please try again.")
 			continue
 		}
-		n-- // Convert to zero-based index
+		numberMonth--
 		for {
 			clearConsole()
-			printDays(arrMonth[n])
+			printDays(arrMonth[numberMonth])
 			fmt.Println("Choose day to add or view your tasks, or enter '0' to go back to the previous menu")
-			fmt.Scan(&k)
-			if k == 0 {
+			fmt.Scan(&numberDay)
+			if numberDay == 0 {
 				break
 			}
-			if k < 1 || k > arrMonth[n].Length {
+			if numberDay < 1 || numberDay > arrMonth[numberMonth].Length {
 				fmt.Println("Invalid day. Please try again.")
 				continue
 			}
-			k-- // Convert to zero-based index
+			numberDay--
 			for {
 				clearConsole()
-				fmt.Printf("Tasks for %d %s:\n", k+1, arrMonth[n].Name)
-				for i, task := range arrMonth[n].Days[k].Tasks {
-					fmt.Printf("%d. %s\n", i+1, task)
-				}
-				fmt.Println("\nEnter new task or enter '0' to go back")
+				fmt.Printf("Tasks for %d %s:\n", numberDay+1, arrMonth[numberMonth].Name)
+				printTask(arrMonth[numberMonth].Days[numberDay].Tasks)
+				fmt.Println("\nEnter new task or enter '0' to go back, enter 'del' to delete task if count of tusk > 0")
 				s, _ := reader.ReadString('\n')
 				s = strings.TrimSpace(s)
+				if s == "del" && len(arrMonth[numberMonth].Days[numberDay].Tasks) > 0 {
+					fmt.Print("Enter number of tusk to delete\n")
+					s, _ = reader.ReadString('\n')
+					s = strings.TrimSpace(s)
+					taskToDelete, err := strconv.Atoi(s)
+					if err != nil || taskToDelete < 1 || taskToDelete > len(arrMonth[numberMonth].Days[numberDay].Tasks) {
+						continue
+					}
+					taskToDelete--
+					arrMonth[numberMonth].Days[numberDay].Tasks = append(arrMonth[numberMonth].Days[numberDay].Tasks[:taskToDelete], arrMonth[numberMonth].Days[numberDay].Tasks[taskToDelete+1:]...)
+					arrMonth[numberMonth].Days[numberDay].NumberOfTasks--
+					continue
+				}
 				if s == "0" {
 					break
 				}
 				if len(s) != 0 {
-					arrMonth[n].Days[k].Tasks = append(arrMonth[n].Days[k].Tasks, s)
-					arrMonth[n].Days[k].NumberOfTasks++
+					arrMonth[numberMonth].Days[numberDay].Tasks = append(arrMonth[numberMonth].Days[numberDay].Tasks, s)
+					arrMonth[numberMonth].Days[numberDay].NumberOfTasks++
 				}
 			}
 		}

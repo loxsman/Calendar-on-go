@@ -314,8 +314,10 @@
 			{
 				"id": 20,
 				"name": "Tuesday",
-				"number_of_tasks": 0,
-				"tasks": []
+				"number_of_tasks": 1,
+				"tasks": [
+					"пойду гулять"
+				]
 			},
 			{
 				"id": 21,
@@ -875,7 +877,7 @@
 			{
 				"id": 20,
 				"name": "Monday",
-				"number_of_tasks": 0,
+				"number_of_tasks": 1,
 				"tasks": []
 			},
 			{
