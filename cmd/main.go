@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,17 +11,61 @@ import (
 )
 
 type Day struct {
-	id            int
-	name          string
-	numberOfTasks int
-	tasks         []string
+	ID            int      `json:"id,"`
+	Name          string   `json:"name"`
+	NumberOfTasks int      `json:"number_of_tasks"`
+	Tasks         []string `json:"tasks"`
 }
 
 type Month struct {
-	id     int
-	name   string
-	length int
-	days   []Day
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Length int    `json:"length"`
+	Days   []Day  `json:"days"`
+}
+
+func saveToFile(data [12]Month, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	jsonData, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(jsonData)
+	return err
+}
+
+func loadFromFile(filename string) ([12]Month, error) {
+	var data [12]Month
+	file, err := os.Open(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return data, nil
+		}
+		return data, err
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return data, err
+	}
+
+	fileSize := fileInfo.Size()
+	buffer := make([]byte, fileSize)
+
+	_, err = file.Read(buffer)
+	if err != nil {
+		return data, err
+	}
+
+	err = json.Unmarshal(buffer, &data)
+	return data, err
 }
 
 func clearConsole() {
@@ -39,13 +84,13 @@ func clearConsole() {
 
 func printMonth(arrMonth [12]Month) {
 	for _, p := range arrMonth {
-		fmt.Printf("%d. %s with length(%d)\n", p.id, p.name, p.length)
+		fmt.Printf("%d. %s with length(%d)\n", p.ID, p.Name, p.Length)
 	}
 }
 
 func printDays(month Month) {
-	for i := 0; i < month.length; i++ {
-		fmt.Printf("%d. %s, Tasks(%d)\n", month.days[i].id, month.days[i].name, month.days[i].numberOfTasks)
+	for i := 0; i < month.Length; i++ {
+		fmt.Printf("%d. %s, Tasks(%d)\n", month.Days[i].ID, month.Days[i].Name, month.Days[i].NumberOfTasks)
 	}
 }
 
@@ -58,6 +103,7 @@ func controls(arrMonth [12]Month) {
 		fmt.Println("Choose month, enter '0' to end program")
 		fmt.Scan(&n)
 		if n == 0 {
+			saveToFile(arrMonth, "data.json")
 			os.Exit(0)
 		}
 		if n < 1 || n > 12 {
@@ -73,15 +119,15 @@ func controls(arrMonth [12]Month) {
 			if k == 0 {
 				break
 			}
-			if k < 1 || k > arrMonth[n].length {
+			if k < 1 || k > arrMonth[n].Length {
 				fmt.Println("Invalid day. Please try again.")
 				continue
 			}
 			k-- // Convert to zero-based index
 			for {
 				clearConsole()
-				fmt.Printf("Tasks for %d %s:\n", k+1, arrMonth[n].name)
-				for i, task := range arrMonth[n].days[k].tasks {
+				fmt.Printf("Tasks for %d %s:\n", k+1, arrMonth[n].Name)
+				for i, task := range arrMonth[n].Days[k].Tasks {
 					fmt.Printf("%d. %s\n", i+1, task)
 				}
 				fmt.Println("\nEnter new task or enter '0' to go back")
@@ -91,8 +137,8 @@ func controls(arrMonth [12]Month) {
 					break
 				}
 				if len(s) != 0 {
-					arrMonth[n].days[k].tasks = append(arrMonth[n].days[k].tasks, s)
-					arrMonth[n].days[k].numberOfTasks++
+					arrMonth[n].Days[k].Tasks = append(arrMonth[n].Days[k].Tasks, s)
+					arrMonth[n].Days[k].NumberOfTasks++
 				}
 			}
 		}
@@ -117,17 +163,17 @@ func createMonths() [12]Month {
 }
 
 func createDays(arrMonth [12]Month) [12]Month {
-	arrDayOnWeek := [...]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+	arrDayOnWeek := [7]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 
 	dayOfWeekIndex := 0
 	for i := 0; i < len(arrMonth); i++ {
-		arrMonth[i].days = make([]Day, arrMonth[i].length)
-		for j := 0; j < arrMonth[i].length; j++ {
-			arrMonth[i].days[j] = Day{
-				id:            j + 1,
-				name:          arrDayOnWeek[dayOfWeekIndex%7],
-				numberOfTasks: 0,
-				tasks:         []string{},
+		arrMonth[i].Days = make([]Day, arrMonth[i].Length)
+		for j := 0; j < arrMonth[i].Length; j++ {
+			arrMonth[i].Days[j] = Day{
+				ID:            j + 1,
+				Name:          arrDayOnWeek[dayOfWeekIndex%7],
+				NumberOfTasks: 0,
+				Tasks:         []string{},
 			}
 			dayOfWeekIndex++
 		}
@@ -136,7 +182,14 @@ func createDays(arrMonth [12]Month) [12]Month {
 }
 
 func main() {
-	arrMonth := createMonths()
-	arrMonth = createDays(arrMonth)
+	filename := "data.json"
+	arrMonth, err := loadFromFile(filename)
+	if err != nil {
+		fmt.Println("Error loading data:", err)
+		arrMonth = createMonths()
+		arrMonth = createDays(arrMonth)
+	} else if arrMonth[0].Days == nil {
+		arrMonth = createDays(arrMonth)
+	}
 	controls(arrMonth)
 }
