@@ -203,7 +203,7 @@ func main() {
 	filename := "data.json"
 	arrMonth, err := loadFromFile(filename)
 	if err != nil {
-		fmt.Println("Error loading data:", err)
+		fmt.Println("Error loading data: ", err)
 		arrMonth = createMonths()
 		arrMonth = createDays(arrMonth)
 	} else if arrMonth[0].Days == nil {
